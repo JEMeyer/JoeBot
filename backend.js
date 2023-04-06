@@ -1,11 +1,11 @@
 const axios = require('axios');
 const FormData = require('form-data');
 
-async function callPromptToStoryboard(userPrompt) {
+async function callPromptToStoryboard(userPrompt, isLocal = false) {
   const form = new FormData();
   form.append('prompt', userPrompt);
 
-  const response = await axios.post('http://localhost:12345/promptToStoryboard', form, {
+  const response = await axios.post(isLocal ? 'http://localhost:8080/promptToStoryboard' : 'https://storyboard.meyer.id/promptToStoryboard', form, {
     headers: form.getHeaders(),
     responseType: 'stream', // To receive the response as a stream
   });

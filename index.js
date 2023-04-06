@@ -57,9 +57,16 @@ client.on("messageCreate", function(message) {
                 await message.channel.sendTyping();
                 // const unique_id = message.id
 
-                const userPrompt = message.content.replace('!storyboard', '').trim();
+                let userPrompt = message.content.replace('!storyboard', '').trim();
+                let isLocal = false;
 
-                const apiCallPromise = callPromptToStoryboard(userPrompt);
+                if (message.content.startsWith('!storyboard+local')) {
+                    isLocal = true;
+                    userPrompt = message.content.replace('!storyboard+local', '').trim()
+                }
+
+
+                const apiCallPromise = callPromptToStoryboard(userPrompt, isLocal);
                 const { stream, fileName }  = await sendTypingWhileAPICall(apiCallPromise, message);
 
 
