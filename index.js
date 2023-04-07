@@ -37,29 +37,31 @@ process.on('SIGTERM', handleShutdown);
 process.on('uncaughtException', handleShutdown);
 process.on('unhandledRejection', handleShutdown);
 
+const commandPostfix = process.env.COMMAND_POSTFIX ?? ' ';
+
 client.on("messageCreate", function (message) {
     if (message.author.bot) return;
 
     pendingChannels.push(message.channel);
 
-    if (message.content.startsWith('!logMessage')) {
+    if (message.content === `!$logMessage${commandPostfix}`.trim()) {
         if (process.getgid) {
             console.log('Current gid: ' + process.getgid());
         }
         message.reply('Fine');
     }
 
-    if (message.content.startsWith('!help')) {
-        message.reply("Use **!storyboard <prompt>** to have me make a short video with AI generated dialog and images.\nUse **!image <prompt>** to have me generate 1 image for you.\n    You can use *--gpt* before your prompt to have GPT auto-fill some details for you to make the image look nicer.\n    *!image --gpt a knight jousting*\n\nI will say I am typing to let you know if I'm still working on your request.\n\nYou can use --local after the !image command to have a local Stable Diffusion model generate the image. This will take more time, but will remove content restrictions.\nWhen using **!image**, you can pass in several other flags, use !image -help for  more information.");
+    if (message.content === `!help${commandPostfix}`.trim()) {
+        message.reply(`Use **!storyboard${commandPostfix} <prompt>** to have me make a short video with AI generated dialog and images.\nUse **!image${commandPostfix} <prompt>** to have me generate 1 image for you.\n    You can use *--gpt* before your prompt to have GPT auto-fill some details for you to make the image look nicer.\n    *!image${commandPostfix} --gpt a knight jousting*\n\nI will say I am typing to let you know if I'm still working on your request.\n\nYou can use --local after the !image${commandPostfix} command to have a local Stable Diffusion model generate the image. This will take more time, but will remove content restrictions.\nWhen using **!image${commandPostfix}**, you can pass in several other flags, use !image${commandPostfix} -help for  more information.`);
     }
 
     // Check if the message starts with the !storyboard command
-    if (message.content.startsWith('!storyboard')) {
+    if (message.content.startsWith(`!storyboard${commandPostfix}`)) {
         (async () => {
             try {
                 await message.channel.sendTyping();
 
-                const userPrompt = message.content.slice('!storyboard'.length).trim();
+                const userPrompt = message.content.slice(`!storyboard${commandPostfix}`.length).trim();
 
                 const apiCallPromise = callPromptToStoryboard(userPrompt);
                 const { stream, fileName } = await sendTypingWhileAPICall(apiCallPromise, message);
@@ -82,12 +84,12 @@ client.on("messageCreate", function (message) {
         })()
     }
 
-    if (message.content.startsWith('!image')) {
+    if (message.content.startsWith(`!image${commandPostfix}`)) {
         (async () => {
             try {
                 await message.channel.sendTyping();
 
-                const args = message.content.slice('!image'.length).trim().split(/ +/);
+                const args = message.content.slice(`!image${commandPostfix}`.length).trim().split(/ +/);
                 let promptWords = [];
                 let seed = null;
                 let scale = null;
@@ -114,7 +116,7 @@ client.on("messageCreate", function (message) {
                             localDiffusion =  true;
                             break
                         case '-help':
-                            message.reply("**!image** has 6 flags you can (optionally) specify:\n    *--raww* will not pre-process your prompt through GPT to try and get more intense descriptions for the diffusion model. Default = false and will result in  more impressive images for smaller prompts\n    *--seed <integer>* will pass the seed to the diffusion model. If you have a complex prompt that you like, look at the first part of the image (XXXX_____restOfName.png), and pass in the XXXX number to use the same seed\n    *--scale <number>* determines the guidance scale. Values range from 1-30, with 1 being loosly tied to the text, and 30 is tightly tied to the text. Default is 7.5\n    *--steps <integer>* will determine how many iterations of diffusion the model goes through. Typically 30-100. Default 50\n    *--dev* will use a dev version of the backend. Can use this if other commands are dead\n    *--local* will have a local Stable Diffusion model generate the image. This will take more time, but will remove content restrictions");
+                            message.reply(`**!image${commandPostfix}** has 5 flags you can (optionally) specify:\n    *--raw* will not pre-process your prompt through GPT to try and get more intense descriptions for the diffusion model. Default = false and will result in  more impressive images for smaller prompts\n    *--seed <integer>* will pass the seed to the diffusion model. If you have a complex prompt that you like, look at the first part of the image (XXXX_____restOfName.png), and pass in the XXXX number to use the same seed\n    *--scale <number>* determines the guidance scale. Values range from 1-30, with 1 being loosly tied to the text, and 30 is tightly tied to the text. Default is 7.5\n    *--steps <integer>* will determine how many iterations of diffusion the model goes through. Typically 30-100. Default 50\n    *--local* will have a local Stable Diffusion model generate the image. This will take more time, but will remove content restrictions`);
                             removeFromPendingChannels(message.channel);
                             return;
                         default:
