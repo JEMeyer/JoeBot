@@ -3,16 +3,9 @@ const FormData = require('form-data');
 const { bufferToStream } = require('./utilities.js')
 
 const axiosInstance = axios.create({
-  baseURL: 'https://storyboard.meyer.id',
+  baseURL: process.env.BACKEND_URL,
   headers: {
     'Authorization': 'Basic ' + Buffer.from('KwisatzHaderach:' + process.env.API_TOKEN).toString('base64'),
-  },
-});
-
-const devAxiosInstance = axios.create({
-  baseURL: 'http://localhost:8080',
-  headers: {
-    'Authorization': 'Basic ' + Buffer.from('KwisatzHaderach:' + process.env.API_TOKEN_DEV).toString('base64'),
   },
 });
 
@@ -20,9 +13,7 @@ async function callPromptToStoryboard(userPrompt, dev) {
   const form = new FormData();
   form.append('prompt', userPrompt);
 
-  const instance = dev ? devAxiosInstance : axiosInstance;
-
-  const response = await instance.post('/promptToStoryboard', form, {
+  const response = await axiosInstance.post('/promptToStoryboard', form, {
     headers: form.getHeaders(),
     responseType: 'stream', // To receive the response as a stream
   });
@@ -43,9 +34,7 @@ async function callPromptToImagePrompt(userPrompt, dev) {
     prompt: userPrompt
   };
 
-  const instance = dev ? devAxiosInstance : axiosInstance;
-
-  const response = await instance.post('/promptToImagePrompt', payload, {
+  const response = await axiosInstance.post('/promptToImagePrompt', payload, {
     headers: {
       'Content-Type': 'application/json'
     }
@@ -54,16 +43,9 @@ async function callPromptToImagePrompt(userPrompt, dev) {
   return response.data;
 }
 
-/* data:
-prompt,
-    scale,
-    steps,
-    seed,
-    localDiffusion */
 async function callPromptToImage(data, dev) {
-  const instance = dev ? devAxiosInstance : axiosInstance;
 
-  const response = await instance.post('/promptToImage', data, {
+  const response = await axiosInstance.post('/promptToImage', data, {
     headers: {
       'Content-Type': 'application/json'
     },

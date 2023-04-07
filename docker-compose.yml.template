@@ -1,0 +1,6 @@
+version: '3'
+
+services:
+  joebot-discord:
+    build: .
+    env_file: .env
