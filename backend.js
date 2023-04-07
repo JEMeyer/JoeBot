@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
   },
 });
 
-async function callPromptToStoryboard(userPrompt, dev) {
+async function callPromptToStoryboard(userPrompt) {
   const form = new FormData();
   form.append('prompt', userPrompt);
 
@@ -29,7 +29,7 @@ async function callPromptToStoryboard(userPrompt, dev) {
   };
 }
 
-async function callPromptToImagePrompt(userPrompt, dev) {
+async function callPromptToImagePrompt(userPrompt) {
   const payload = {
     prompt: userPrompt
   };
@@ -43,7 +43,7 @@ async function callPromptToImagePrompt(userPrompt, dev) {
   return response.data;
 }
 
-async function callPromptToImage(data, dev) {
+async function callPromptToImage(data) {
 
   const response = await axiosInstance.post('/promptToImage', data, {
     headers: {
@@ -61,9 +61,9 @@ async function callPromptToImage(data, dev) {
   };
 }
 
-async function generateImage(userPrompt, seed, scale, steps, localDiffusion, dev,  gpt) {
+async function generateImage(userPrompt, seed, scale, steps, localDiffusion,  gpt) {
   if (gpt) {
-      userPrompt = await callPromptToImagePrompt(userPrompt, dev);
+      userPrompt = await callPromptToImagePrompt(userPrompt);
   }
   const data = {
       prompt: userPrompt,
@@ -73,7 +73,7 @@ async function generateImage(userPrompt, seed, scale, steps, localDiffusion, dev
       localDiffusion
   };
 
-  const {stream, fileName} = await callPromptToImage(data, dev);
+  const {stream, fileName} = await callPromptToImage(data);
 
   return {
       stream,

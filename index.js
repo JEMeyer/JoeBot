@@ -59,26 +59,9 @@ client.on("messageCreate", function (message) {
             try {
                 await message.channel.sendTyping();
 
-                const args = message.content.slice('!storyboard'.length).trim().split(/ +/);
-                let promptWords = [];
-                let dev = false
+                const userPrompt = message.content.slice('!storyboard'.length).trim();
 
-                // Parse the flags and their values
-                for (let i = 0; i < args.length; i++) {
-                    switch (args[i]) {
-                        case '--dev':
-                            dev = true;
-                            break
-                        default:
-                            promptWords.push(args[i]);
-                            break;
-                    }
-                }
-
-                // Reconstruct the prompt without the flags
-                const userPrompt = promptWords.join(' ');
-
-                const apiCallPromise = callPromptToStoryboard(userPrompt, dev);
+                const apiCallPromise = callPromptToStoryboard(userPrompt);
                 const { stream, fileName } = await sendTypingWhileAPICall(apiCallPromise, message);
 
 
@@ -110,7 +93,6 @@ client.on("messageCreate", function (message) {
                 let scale = null;
                 let steps = null;
                 let gpt = true;
-                let dev = false;
                 let localDiffusion = false;
 
                 // Parse the flags and their values
@@ -128,9 +110,6 @@ client.on("messageCreate", function (message) {
                         case '--raw':
                             gpt = false;
                             break;
-                        case '--dev':
-                            dev = true;
-                            break
                         case '--local':
                             localDiffusion =  true;
                             break
@@ -152,7 +131,7 @@ client.on("messageCreate", function (message) {
                 scale = scale ?? 7.5;
                 steps = steps ?? 50;
 
-                const apiCallPromise = generateImage(userPrompt, seed, scale, steps, localDiffusion, dev, gpt);
+                const apiCallPromise = generateImage(userPrompt, seed, scale, steps, localDiffusion, gpt);
                 const { stream, fileName } = await sendTypingWhileAPICall(apiCallPromise, message);
 
 
