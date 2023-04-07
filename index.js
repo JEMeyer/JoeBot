@@ -3,6 +3,7 @@ const { Client, GatewayIntentBits } = require('discord.js');
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
 const { callPromptToStoryboard } = require ('./backend.js');
+const { generateImage } = require('./diffusion.js');
 const { sendTypingWhileAPICall } = require('./utilities.js');
 
 let pendingChannels = [];
@@ -55,8 +56,6 @@ client.on("messageCreate", function(message) {
         (async () => {
             try {
                 await message.channel.sendTyping();
-                // const unique_id = message.id
-
                 let userPrompt = message.content.replace('!storyboard', '').trim();
                 let isLocal = false;
 
@@ -82,6 +81,34 @@ client.on("messageCreate", function(message) {
             } catch (err) {
                 console.error('Main  backend call error: ', err)
                 message.reply('There was an error creating the storyboard, please try again.')
+                removeFromPendingChannels(message.channel)
+                return;
+            }
+        })()
+    }
+
+    if (message.content.startsWith('!image')) {
+        (async () => {
+            try {
+                await message.channel.sendTyping();
+
+                let userPrompt = message.content.replace('!image', '').trim();
+                const apiCallPromise = generateImage(userPrompt);
+                const { stream, fileName }  = await sendTypingWhileAPICall(apiCallPromise, message);
+
+
+                await message.reply({
+                    files: [
+                      {
+                        name: fileName,
+                        attachment: stream,
+                      },
+                    ],
+                  });
+                removeFromPendingChannels(message.channel)
+            } catch (err) {
+                console.error('Stable diffusion call error: ', err)
+                message.reply('There was an error creating the image, please try again.')
                 removeFromPendingChannels(message.channel)
                 return;
             }
