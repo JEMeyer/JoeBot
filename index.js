@@ -50,7 +50,7 @@ client.on("messageCreate", function (message) {
     }
 
     if (message.content.startsWith('!help')) {
-        message.reply('Use **!storyboard <prompt>** to have me make a short video with AI generated dialog and images.\nUse **!image <prompt>** to have me generate 1 image for you.\n\nBoth of these can take some time, I will say I am typing to let you know I\'m still working on it.\n\nWhen using **!image**, you can pass in the flags *--steps N --scale X --seed Z*, all as optional parameters (eg **!image --steps 30 --seed 12345 <prompt>**).\nDefault values:\n    seed: randomly generated, you can override\n    steps: 50\n    scale: 7.5\n\nI will return images made with **!image** prepended with the seed so you can re-use the phrase you used to create the image to fine-tune it.\n\n**!storyboard** will have some basic content moderation in place, but **!image** will try and draw *whatever you type*.');
+        message.reply("Use **!storyboard <prompt>** to have me make a short video with AI generated dialog and images.\nUse **!image <prompt>** to have me generate 1 image for you.\n    You can use *--gpt* before your prompt to have GPT auto-fill some details for you to make the image look nicer.\n    *!image --gpt a knight jousting*\n\nI will say I am typing to let you know if I'm still working on your request.\n\nYou can use --local after the !image command to have a local Stable Diffusion model generate the image. This will take more time, but will remove content restrictions.\nWhen using **!image**, you can pass in several other flags, use !image -help for  more information.");
     }
 
     // Check if the message starts with the !storyboard command
@@ -109,7 +109,7 @@ client.on("messageCreate", function (message) {
                 let seed = null;
                 let scale = null;
                 let steps = null;
-                let gpt = false;
+                let gpt = true;
                 let dev = false;
                 let localDiffusion = false;
 
@@ -125,9 +125,9 @@ client.on("messageCreate", function (message) {
                         case '--steps':
                             steps = args[++i];
                             break;
-                        case '--gpt':
+                        case '--raw':
                             ++i;
-                            gpt = true;
+                            gpt = false;
                             break;
                         case '--dev':
                             dev = true;
@@ -135,6 +135,10 @@ client.on("messageCreate", function (message) {
                         case '--local':
                             localDiffusion =  true;
                             break
+                        case '-help':
+                            message.reply("**!image** has 6 flags you can (optionally) specify:\n    *--raww* will not pre-process your prompt through GPT to try and get more intense descriptions for the diffusion model. Default = false and will result in  more impressive images for smaller prompts\n    *--seed <integer>* will pass the seed to the diffusion model. If you have a complex prompt that you like, look at the first part of the image (XXXX_____restOfName.png), and pass in the XXXX number to use the same seed\n    *--scale <number>* determines the guidance scale. Values range from 1-30, with 1 being loosly tied to the text, and 30 is tightly tied to the text. Default is 7.5\n    *--steps <integer>* will determine how many iterations of diffusion the model goes through. Typically 30-100. Default 50\n    *--dev* will use a dev version of the backend. Can use this if other commands are dead\n    *--local* will have a local Stable Diffusion model generate the image. This will take more time, but will remove content restrictions");
+                            removeFromPendingChannels(message.channel);
+                            return;
                         default:
                             promptWords.push(args[i]);
                             break;
