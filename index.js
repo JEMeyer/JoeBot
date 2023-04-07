@@ -126,7 +126,6 @@ client.on("messageCreate", function (message) {
                             steps = args[++i];
                             break;
                         case '--raw':
-                            ++i;
                             gpt = false;
                             break;
                         case '--dev':
