@@ -1,39 +1,24 @@
-const axios = require('axios');
-const { Readable } = require('stream');
+const {callPromptToImagePrompt, callPromptToImage} = require('./backend');
+const { bufferToStream } = require('./utilities.js');
 
-// Function to convert buffer to readable stream
-function bufferToStream(buffer) {
-    const readableStream = new Readable();
-    readableStream.push(buffer);
-    readableStream.push(null);
-    return readableStream;
-}
 
-async function generateImage(userPrompt) {
+async function generateImage(userPrompt, seed, scale, steps, localDiffusion, dev,  gpt) {
+    if (gpt) {
+        userPrompt = await callPromptToImagePrompt(userPrompt, dev);
+    }
     const data = {
         prompt: userPrompt,
-        scale: 7.5,
-        steps: 50,
-        seed: Math.floor(Math.random() * 1000)
+        scale,
+        steps,
+        seed,
+        localDiffusion
     };
 
-    const response = await axios.post('http://192.168.1.99:20020/generate', data, {
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
+    const {stream, fileName} = await callPromptToImage(data, dev);
 
-    console.log(response);
-
-    const secondResponse = await axios.get(`http://192.168.1.99:20020/download/${response.data.download_id}`, {
-        responseType: 'arraybuffer'
-    });
-
-    const buffer = Buffer.from(secondResponse.data);
-    const filename = secondResponse.headers['content-disposition'].split('filename=')[1].replace(/"/g, '');
     return {
-        stream: bufferToStream(buffer),
-        filename,
+        stream,
+        fileName,
     };
 }
 
