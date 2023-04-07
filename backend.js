@@ -59,8 +59,29 @@ async function callPromptToImage(data, dev) {
   };
 }
 
+async function generateImage(userPrompt, seed, scale, steps, localDiffusion, dev,  gpt) {
+  if (gpt) {
+      userPrompt = await callPromptToImagePrompt(userPrompt, dev);
+  }
+  const data = {
+      prompt: userPrompt,
+      scale,
+      steps,
+      seed,
+      localDiffusion
+  };
+
+  const {stream, fileName} = await callPromptToImage(data, dev);
+
+  return {
+      stream,
+      fileName,
+  };
+}
+
 module.exports = {
   callPromptToImage,
   callPromptToImagePrompt,
-  callPromptToStoryboard
+  callPromptToStoryboard,
+  generateImage
 };
