@@ -1,7 +1,10 @@
 import { Message } from 'discord.js';
 import { Readable } from 'stream';
 
-export async function sendTypingWhileAPICall(apiCallPromise: Promise<any>, message: Message<boolean>) {
+export async function sendTypingWhileAPICall(
+  apiCallPromise: Promise<any>,
+  message: Message<boolean>
+) {
   let typingInterval: string | number | NodeJS.Timer | undefined;
 
   // Start typing
