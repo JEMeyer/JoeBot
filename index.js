@@ -52,7 +52,7 @@ client.on("messageCreate", function (message) {
     }
 
     if (message.content === `!help${commandPostfix}`.trim()) {
-        message.reply(`Use **!storyboard${commandPostfix} <prompt>** to have me make a short video with AI generated dialog and images.\nUse **!image${commandPostfix} <prompt>** to have me generate 1 image for you.\n    You can use *--gpt* before your prompt to have GPT auto-fill some details for you to make the image look nicer.\n    *!image${commandPostfix} --gpt a knight jousting*\n\nI will say I am typing to let you know if I'm still working on your request.\n\nYou can use --local after the !image${commandPostfix} command to have a local Stable Diffusion model generate the image. This will take more time, but will remove content restrictions.\nWhen using **!image${commandPostfix}**, you can pass in several other flags, use !image${commandPostfix} -help for  more information.`);
+        message.reply(`Use **!storyboard${commandPostfix} <prompt>** to have me make a short video with AI generated dialog and images.\nUse **!image${commandPostfix} <prompt>** to have me generate 1 image for you.\n\nI will say I am typing to let you know if I'm still working on your request.\n\nYou can use --local after the !image${commandPostfix} command to have a local Stable Diffusion model generate the image. This will take more time, but will remove content restrictions.\nWhen using **!image${commandPostfix}**, you can pass in several other flags, use !image${commandPostfix} -help for  more information.`);
     }
 
     // Check if the message starts with the !storyboard command
