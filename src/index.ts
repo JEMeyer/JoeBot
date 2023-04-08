@@ -1,10 +1,9 @@
 import dotenv from 'dotenv';
+dotenv.config();
 import { Client, GatewayIntentBits, Channel, ChannelType } from 'discord.js';
 import { callPromptToStoryboard, generateImage } from './backend';
-
 import { sendTypingWhileAPICall } from './utilities';
 
-dotenv.config();
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
 let pendingChannels: Channel[] = [];
