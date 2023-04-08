@@ -15,5 +15,8 @@ RUN npm install -g npm@9.6.4 && \
 # Copy the application source code to the working directory
 COPY . .
 
+# Build the TypeScript code to JavaScript
+RUN npm run build
+
 # Start the application
-CMD ["pm2-runtime", "index.js"]
+CMD ["pm2-runtime", "dist/index.js"]

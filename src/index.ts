@@ -1,13 +1,15 @@
-require('dotenv').config();
-const { Client, GatewayIntentBits } = require('discord.js');
+import dotenv from 'dotenv';
+import { Client, GatewayIntentBits, Channel, ChannelType } from 'discord.js';
+import { callPromptToStoryboard, generateImage } from './backend';
+
+import { sendTypingWhileAPICall } from './utilities';
+
+dotenv.config();
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
-const { callPromptToStoryboard, generateImage } = require('./backend.js');
-const { sendTypingWhileAPICall } = require('./utilities.js');
+let pendingChannels: Channel[] = [];
 
-let pendingChannels = [];
-
-function removeFromPendingChannels(channel) {
+function removeFromPendingChannels(channel: Channel) {
     const index = pendingChannels.findIndex((i) => i.id === channel.id);
     pendingChannels.splice(index, 1);
 }
@@ -19,8 +21,11 @@ async function handleShutdown() {
     // Send a message to the target channel
     if (pendingChannels.length) {
         for (let i = 0; i < pendingChannels.length; i++) {
+            const channel = pendingChannels[i];
             // Send a message to the last channel the bot interacted with
-            await pendingChannels[i].send('I am dead. Rebooting beep boop.');
+            if (channel.type === ChannelType.GuildText) {
+                await channel.send('I am dead. Rebooting beep boop.');
+            }
         }
     }
 
@@ -90,10 +95,10 @@ client.on("messageCreate", function (message) {
                 await message.channel.sendTyping();
 
                 const args = message.content.slice(`!image${commandPostfix}`.length).trim().split(/ +/);
-                let promptWords = [];
-                let seed = null;
-                let scale = null;
-                let steps = null;
+                let promptWords: string[] = [];
+                let seed = Math.floor(Math.random() * 4294967295);
+                let scale = 7.5;
+                let steps = 50;
                 let gpt = true;
                 let localDiffusion = false;
 
@@ -101,13 +106,13 @@ client.on("messageCreate", function (message) {
                 for (let i = 0; i < args.length; i++) {
                     switch (args[i]) {
                         case '--seed':
-                            seed = args[++i];
+                            seed = Number(args[++i]);
                             break;
                         case '--scale':
-                            scale = args[++i];
+                            scale = Number(args[++i]);
                             break;
                         case '--steps':
-                            steps = args[++i];
+                            steps = Number(args[++i]);
                             break;
                         case '--raw':
                             gpt = false;
@@ -127,11 +132,6 @@ client.on("messageCreate", function (message) {
 
                 // Reconstruct the prompt without the flags
                 const userPrompt = promptWords.join(' ');
-
-                // Default optional values
-                seed = seed ?? Math.floor(Math.random() * 4294967295);
-                scale = scale ?? 7.5;
-                steps = steps ?? 50;
 
                 const apiCallPromise = generateImage(userPrompt, seed, scale, steps, localDiffusion, gpt);
                 const { stream, fileName } = await sendTypingWhileAPICall(apiCallPromise, message);

@@ -1,7 +1,8 @@
-const { Readable } = require('stream');
+import { Message } from 'discord.js';
+import { Readable } from 'stream';
 
-async function sendTypingWhileAPICall(apiCallPromise, message) {
-  let typingInterval;
+export async function sendTypingWhileAPICall(apiCallPromise: Promise<any>, message: Message<boolean>) {
+  let typingInterval: string | number | NodeJS.Timer | undefined;
 
   // Start typing
   const startTyping = () => {
@@ -32,14 +33,9 @@ async function sendTypingWhileAPICall(apiCallPromise, message) {
 }
 
 // Function to convert buffer to readable stream
-function bufferToStream(buffer) {
+export function bufferToStream(buffer: Buffer) {
   const readableStream = new Readable();
   readableStream.push(buffer);
   readableStream.push(null);
   return readableStream;
 }
-
-module.exports = {
-  bufferToStream,
-  sendTypingWhileAPICall
-};

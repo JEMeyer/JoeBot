@@ -1,6 +1,6 @@
-const axios = require('axios');
-const FormData = require('form-data');
-const { bufferToStream } = require('./utilities.js')
+import axios from 'axios';
+import FormData from 'form-data';
+import { bufferToStream } from './utilities';
 
 const axiosInstance = axios.create({
   baseURL: process.env.BACKEND_URL,
@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
   },
 });
 
-async function callPromptToStoryboard(userPrompt) {
+export async function callPromptToStoryboard(userPrompt: string) {
   const form = new FormData();
   form.append('prompt', userPrompt);
 
@@ -29,7 +29,7 @@ async function callPromptToStoryboard(userPrompt) {
   };
 }
 
-async function callPromptToImagePrompt(userPrompt) {
+export async function callPromptToImagePrompt(userPrompt: string) {
   const payload = {
     prompt: userPrompt
   };
@@ -43,7 +43,9 @@ async function callPromptToImagePrompt(userPrompt) {
   return response.data;
 }
 
-async function callPromptToImage(data) {
+type ImageGenerationData = { prompt: string; scale: number; steps: number; seed: number; localDiffusion: boolean; };
+
+export async function callPromptToImage(data: ImageGenerationData) {
 
   const response = await axiosInstance.post('/promptToImage', data, {
     headers: {
@@ -61,29 +63,22 @@ async function callPromptToImage(data) {
   };
 }
 
-async function generateImage(userPrompt, seed, scale, steps, localDiffusion,  gpt) {
+export async function generateImage(userPrompt: string, seed: number, scale: number, steps: number, localDiffusion: boolean, gpt: boolean) {
   if (gpt) {
-      userPrompt = await callPromptToImagePrompt(userPrompt);
+    userPrompt = await callPromptToImagePrompt(userPrompt);
   }
-  const data = {
-      prompt: userPrompt,
-      scale,
-      steps,
-      seed,
-      localDiffusion
+  const data: ImageGenerationData = {
+    prompt: userPrompt,
+    scale,
+    steps,
+    seed,
+    localDiffusion
   };
 
-  const {stream, fileName} = await callPromptToImage(data);
+  const { stream, fileName } = await callPromptToImage(data);
 
   return {
-      stream,
-      fileName,
+    stream,
+    fileName,
   };
 }
-
-module.exports = {
-  callPromptToImage,
-  callPromptToImagePrompt,
-  callPromptToStoryboard,
-  generateImage
-};
