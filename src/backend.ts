@@ -16,21 +16,27 @@ const axiosInstance = axios.create({
 export async function callPromptToStoryboard(userPrompt: string) {
   const form = new FormData();
   form.append('prompt', userPrompt);
+  try {
+    const response = await axiosInstance.post('/promptToStoryboard', form, {
+      headers: form.getHeaders(),
+      responseType: 'stream', // To receive the response as a stream
+    });
 
-  const response = await axiosInstance.post('/promptToStoryboard', form, {
-    headers: form.getHeaders(),
-    responseType: 'stream', // To receive the response as a stream
-  });
+    const contentDisposition = response.headers['content-disposition'];
+    const fileName = contentDisposition
+      ? contentDisposition.split('filename=')[1].replace(/["']/g, '')
+      : 'output.mp4';
 
-  const contentDisposition = response.headers['content-disposition'];
-  const fileName = contentDisposition
-    ? contentDisposition.split('filename=')[1].replace(/["']/g, '')
-    : 'output.mp4';
-
-  return {
-    stream: response.data,
-    fileName,
-  };
+    return {
+      stream: response.data,
+      fileName,
+    };
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      throw new Error(err.response?.statusText || 'Unknown error. Please try again.');
+    }
+    throw new Error('Unknown error. Please try again.');
+  }
 }
 
 export async function callPromptToImagePrompt(userPrompt: string) {
@@ -38,13 +44,20 @@ export async function callPromptToImagePrompt(userPrompt: string) {
     prompt: userPrompt,
   };
 
-  const response = await axiosInstance.post('/promptToImagePrompt', payload, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  try {
+    const response = await axiosInstance.post('/promptToImagePrompt', payload, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-  return response.data;
+    return response.data;
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      throw new Error(err.response?.statusText || 'Unknown error. Please try again.');
+    }
+    throw new Error('Unknown error. Please try again.');
+  }
 }
 
 type ImageGenerationData = {
@@ -56,22 +69,29 @@ type ImageGenerationData = {
 };
 
 export async function callPromptToImage(data: ImageGenerationData) {
-  const response = await axiosInstance.post('/promptToImage', data, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    responseType: 'arraybuffer',
-  });
+  try {
+    const response = await axiosInstance.post('/promptToImage', data, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      responseType: 'arraybuffer',
+    });
 
-  const buffer = Buffer.from(response.data);
-  const filename = response.headers['content-disposition']
-    .split('filename=')[1]
-    .replace(/"/g, '');
+    const buffer = Buffer.from(response.data);
+    const filename = response.headers['content-disposition']
+      .split('filename=')[1]
+      .replace(/"/g, '');
 
-  return {
-    stream: bufferToStream(buffer),
-    fileName: `${filename}`,
-  };
+    return {
+      stream: bufferToStream(buffer),
+      fileName: `${filename}`,
+    };
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      throw new Error(err.response?.statusText || 'Unknown error. Please try again.');
+    }
+    throw new Error('Unknown error. Please try again.');
+  }
 }
 
 export async function generateImage(

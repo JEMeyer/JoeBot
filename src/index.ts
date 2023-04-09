@@ -91,10 +91,9 @@ client.on('messageCreate', function (message) {
             },
           ],
         });
-      } catch (err) {
-        console.error('Main  backend call error: ', err);
+      } catch (err: any) {
         message.reply(
-          'There was an error creating the storyboard, please try again.'
+          err.message
         );
         removeFromPendingChannels(message.channel);
         return;
@@ -172,10 +171,9 @@ client.on('messageCreate', function (message) {
             },
           ],
         });
-      } catch (err) {
-        console.error('Stable diffusion call error: ', err);
+      } catch (err: any) {
         message.reply(
-          'There was an error creating the image, please try again.'
+          err.message
         );
         removeFromPendingChannels(message.channel);
         return;
