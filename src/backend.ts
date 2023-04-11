@@ -7,7 +7,7 @@ const axiosInstance = axios.create({
   headers: {
     Authorization:
       'Basic ' +
-      Buffer.from('KwisatzHaderach:' + process.env.API_TOKEN).toString(
+      Buffer.from(process.env.API_TOKEN || '').toString(
         'base64'
       ),
   },
