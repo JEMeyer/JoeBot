@@ -32,7 +32,7 @@ SlackBot.command('/storyboard', async ({ command, ack, client, context }) => {
         await client.files.uploadV2({
             token: context.botToken,
             channel_id: command.channel_id,
-            initial_comment: `Hey <@${command.user_id}>! Here's your storyboard :yeet:`,
+            initial_comment: `Hey <@${command.user_id}>! Here's your storyboard :yeet:. Prompt used: ${userPrompt}`,
             file: fileBuffer,
             filename: fileName,
         });
@@ -75,7 +75,7 @@ SlackBot.command('/imagegen', async ({ command, ack, client, context }) => {
         await client.files.uploadV2({
             token: context.botToken,
             channel_id: command.channel_id,
-            initial_comment: `Hey <@${command.user_id}>! Here's your image :wow_fb:`,
+            initial_comment: `Hey <@${command.user_id}>! Here's your image :wow_fb:. Prompt used: "${command.text}"`,
             file: fileBuffer,
             filename: fileName,
         });
