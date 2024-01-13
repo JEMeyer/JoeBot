@@ -6,10 +6,7 @@ const axiosInstance = axios.create({
   baseURL: process.env.BACKEND_URL,
   headers: {
     Authorization:
-      'Basic ' +
-      Buffer.from(process.env.API_TOKEN || '').toString(
-        'base64'
-      ),
+      'Basic ' + Buffer.from(process.env.API_TOKEN || '').toString('base64'),
   },
 });
 
@@ -33,13 +30,17 @@ export async function callPromptToStoryboard(userPrompt: string) {
     };
   } catch (err) {
     if (axios.isAxiosError(err)) {
-      throw new Error(err.response?.statusText || 'Unknown error. Please try again.');
+      throw new Error(
+        err.response?.statusText || 'Unknown error. Please try again.'
+      );
     }
     throw new Error('Unknown error. Please try again.');
   }
 }
 
-export async function callPromptToImagePrompt(userPrompt: string) {
+export async function callPromptToImagePrompt(
+  userPrompt: string
+): Promise<{ upscaledPrompt: string; negativePrompt: string }> {
   const payload = {
     prompt: userPrompt,
   };
@@ -51,10 +52,12 @@ export async function callPromptToImagePrompt(userPrompt: string) {
       },
     });
 
-    return response.data;
+    return JSON.parse(response.data);
   } catch (err) {
     if (axios.isAxiosError(err)) {
-      throw new Error(err.response?.statusText || 'Unknown error. Please try again.');
+      throw new Error(
+        err.response?.statusText || 'Unknown error. Please try again.'
+      );
     }
     throw new Error('Unknown error. Please try again.');
   }
@@ -62,10 +65,11 @@ export async function callPromptToImagePrompt(userPrompt: string) {
 
 type ImageGenerationData = {
   prompt: string;
+  negPrompt?: string;
   scale: number;
   steps: number;
   seed: number;
-  localDiffusion: boolean;
+  xlModel: boolean;
 };
 
 export async function callPromptToImage(data: ImageGenerationData) {
@@ -88,7 +92,9 @@ export async function callPromptToImage(data: ImageGenerationData) {
     };
   } catch (err) {
     if (axios.isAxiosError(err)) {
-      throw new Error(err.response?.statusText || 'Unknown error. Please try again.');
+      throw new Error(
+        err.response?.statusText || 'Unknown error. Please try again.'
+      );
     }
     throw new Error('Unknown error. Please try again.');
   }
@@ -99,18 +105,20 @@ export async function generateImage(
   seed: number,
   scale: number,
   steps: number,
-  localDiffusion: boolean,
-  gpt: boolean
+  gpt: boolean,
+  xlModel: boolean
 ) {
+  let upscaledPrompt;
   if (gpt) {
-    userPrompt = await callPromptToImagePrompt(userPrompt);
+    upscaledPrompt = await callPromptToImagePrompt(userPrompt);
   }
   const data: ImageGenerationData = {
-    prompt: userPrompt,
+    prompt: upscaledPrompt?.upscaledPrompt ?? userPrompt,
+    negPrompt: upscaledPrompt?.negativePrompt,
     scale,
     steps,
     seed,
-    localDiffusion,
+    xlModel,
   };
 
   const { stream, fileName } = await callPromptToImage(data);
@@ -118,5 +126,6 @@ export async function generateImage(
   return {
     stream,
     fileName,
+    promptUsed: data.prompt,
   };
 }

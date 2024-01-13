@@ -1,4 +1,6 @@
 import { Readable } from 'stream';
+import * as fs from 'fs';
+import crypto from 'crypto';
 
 export async function sendTypingWhileAPICall(
   apiCallPromise: Promise<any>,
@@ -50,9 +52,48 @@ export const streamToBuffer = async (stream: Readable) => {
   return Buffer.concat(chunks);
 };
 
-export function createNewFilenameWithTimestamp(originalFilename: string) {
+export function generateFilename(originalFilename: string) {
+  // Extract file extension
   const fileExtension = originalFilename?.split('.').pop();
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-  const randomString = Math.random().toString(36).substr(2, 4);
-  return `${timestamp}_${randomString}.${fileExtension}`;
+
+  // Get current date components
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+  const day = String(now.getDate()).padStart(2, '0');
+
+  const timestamp = `${year}-${month}-${day}`;
+
+  // Filename without extension
+  const baseFilename = originalFilename?.split('.').slice(0, -1).join('.');
+
+  // Generate unique identifier in case of collision
+  const uniqueId = crypto.randomBytes(4).toString('hex');
+
+  // Combine components to form the final filename
+  return `${timestamp}_${baseFilename}_${uniqueId}.${fileExtension}`;
+}
+
+export function saveFile(
+  filePath: string,
+  fileName: string,
+  fileContent: Buffer | ArrayBuffer
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let buffer: Buffer;
+
+    if (fileContent instanceof Buffer) {
+      buffer = fileContent;
+    } else {
+      buffer = Buffer.from(fileContent);
+    }
+
+    fs.writeFile(`${filePath}/${fileName}`, buffer, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
 }
