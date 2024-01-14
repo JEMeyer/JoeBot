@@ -52,14 +52,14 @@ export async function callPromptToImagePrompt(
       },
     });
 
-    return JSON.parse(response.data);
+    return response.data;
   } catch (err) {
     if (axios.isAxiosError(err)) {
       throw new Error(
         err.response?.statusText || 'Unknown error. Please try again.'
       );
     }
-    throw new Error('Unknown error. Please try again.');
+    throw new Error(JSON.stringify(err));
   }
 }
 
@@ -125,6 +125,6 @@ export async function generateImage(
   return {
     stream,
     fileName,
-    promptUsed: data.prompt,
+    promptUsed: data,
   };
 }
