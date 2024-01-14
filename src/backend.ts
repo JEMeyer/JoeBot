@@ -104,7 +104,9 @@ export async function generateImage(
   seed: number,
   scale: number,
   steps: number,
-  gpt: boolean
+  gpt: boolean,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  openjoruney: boolean
 ) {
   let upscaledPrompt;
   if (gpt) {

@@ -59,7 +59,8 @@ SlackBot.command('/imagegen', async ({ command, ack, client, context }) => {
       seed,
       scale,
       steps,
-      gpt
+      gpt,
+      false
     );
     const fileBuffer = await streamToBuffer(stream);
 
@@ -100,7 +101,8 @@ SlackBot.command('/imagegenraw', async ({ command, ack, client, context }) => {
       seed,
       scale,
       steps,
-      gpt
+      gpt,
+      false
     );
     const fileBuffer = await streamToBuffer(stream);
 
@@ -142,7 +144,8 @@ SlackBot.command(
         seed,
         scale,
         steps,
-        gpt
+        gpt,
+        true
       );
       const fileBuffer = await streamToBuffer(stream);
 
@@ -183,7 +186,8 @@ SlackBot.command('/openjourney', async ({ command, ack, client, context }) => {
       seed,
       scale,
       steps,
-      gpt
+      gpt,
+      true
     );
     const fileBuffer = await streamToBuffer(stream);
 
