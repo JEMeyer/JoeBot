@@ -213,7 +213,6 @@ SlackBot.command('/openjourney', async ({ command, ack, client, context }) => {
 });
 
 const targetChannelId = process.env.SLACK_IMAGE_BACKUP_CHANNEL_ID;
-const nextcloudFolderPath = process.env.NEXTCLOUD_SHARED_FOLDER;
 
 SlackBot.event('file_shared', async ({ event, client }) => {
   try {
@@ -230,7 +229,7 @@ SlackBot.event('file_shared', async ({ event, client }) => {
 
     const isBot = userResult.user?.is_bot;
 
-    if (!isBot && nextcloudFolderPath) {
+    if (!isBot) {
       // Fetch file details
       const result = await client.files.info({
         token: process.env.SLACK_BOT_TOKEN,
@@ -264,7 +263,7 @@ SlackBot.event('file_shared', async ({ event, client }) => {
 
           // Save file to the family photos folder
           await saveFile(
-            `${process.env.NAS_PATH}${process.env.FOLDER_PATH}`,
+            `${process.env.NAS_PATH}${process.env.FAM_PHOTOS_FOLDER_PATH}`,
             fileName,
             fileContent
           );
