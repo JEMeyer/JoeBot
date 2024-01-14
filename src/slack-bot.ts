@@ -53,15 +53,13 @@ SlackBot.command('/imagegen', async ({ command, ack, client, context }) => {
     const scale = 7.5;
     const steps = 50;
     const gpt = true;
-    const xlModel = false;
 
     const { stream, fileName, promptUsed } = await generateImage(
       userPrompt,
       seed,
       scale,
       steps,
-      gpt,
-      xlModel
+      gpt
     );
     const fileBuffer = await streamToBuffer(stream);
 
@@ -96,15 +94,13 @@ SlackBot.command('/imagegenraw', async ({ command, ack, client, context }) => {
     const scale = 7.5;
     const steps = 50;
     const gpt = false;
-    const xlModel = false;
 
     const { stream, fileName, promptUsed } = await generateImage(
       userPrompt,
       seed,
       scale,
       steps,
-      gpt,
-      xlModel
+      gpt
     );
     const fileBuffer = await streamToBuffer(stream);
 
@@ -140,15 +136,13 @@ SlackBot.command(
       const scale = 7.5;
       const steps = 50;
       const gpt = false;
-      const xlModel = true;
 
       const { stream, fileName, promptUsed } = await generateImage(
         userPrompt,
         seed,
         scale,
         steps,
-        gpt,
-        xlModel
+        gpt
       );
       const fileBuffer = await streamToBuffer(stream);
 
@@ -183,15 +177,13 @@ SlackBot.command('/openjourney', async ({ command, ack, client, context }) => {
     const scale = 7.5;
     const steps = 50;
     const gpt = true;
-    const xlModel = true;
 
     const { stream, fileName, promptUsed } = await generateImage(
       userPrompt,
       seed,
       scale,
       steps,
-      gpt,
-      xlModel
+      gpt
     );
     const fileBuffer = await streamToBuffer(stream);
 

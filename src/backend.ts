@@ -40,7 +40,7 @@ export async function callPromptToStoryboard(userPrompt: string) {
 
 export async function callPromptToImagePrompt(
   userPrompt: string
-): Promise<{ upscaledPrompt: string; negativePrompt: string }> {
+): Promise<{ prompt: string; negPrompt: string }> {
   const payload = {
     prompt: userPrompt,
   };
@@ -69,7 +69,6 @@ type ImageGenerationData = {
   scale: number;
   steps: number;
   seed: number;
-  xlModel: boolean;
 };
 
 export async function callPromptToImage(data: ImageGenerationData) {
@@ -105,20 +104,18 @@ export async function generateImage(
   seed: number,
   scale: number,
   steps: number,
-  gpt: boolean,
-  xlModel: boolean
+  gpt: boolean
 ) {
   let upscaledPrompt;
   if (gpt) {
     upscaledPrompt = await callPromptToImagePrompt(userPrompt);
   }
   const data: ImageGenerationData = {
-    prompt: upscaledPrompt?.upscaledPrompt ?? userPrompt,
-    negPrompt: upscaledPrompt?.negativePrompt,
+    prompt: upscaledPrompt?.prompt ?? userPrompt,
+    negPrompt: upscaledPrompt?.negPrompt,
     scale,
     steps,
     seed,
-    xlModel,
   };
 
   const { stream, fileName } = await callPromptToImage(data);
