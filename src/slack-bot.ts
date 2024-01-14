@@ -54,7 +54,7 @@ SlackBot.command('/imagegen', async ({ command, ack, client, context }) => {
     const steps = 50;
     const gpt = true;
 
-    const { stream, fileName, promptUsed } = await generateImage(
+    const { stream, fileName } = await generateImage(
       userPrompt,
       seed,
       scale,
@@ -67,7 +67,7 @@ SlackBot.command('/imagegen', async ({ command, ack, client, context }) => {
     await client.files.uploadV2({
       token: context.botToken,
       channel_id: command.channel_id,
-      initial_comment: `Hey <@${command.user_id}>! Here's your image :yeet:. Prompt used: "${promptUsed}" (original prompt: "${userPrompt}")`,
+      initial_comment: `Hey <@${command.user_id}>! Here's your image basd on '${userPrompt}' :yeet:.`,
       file: fileBuffer,
       filename: fileName,
     });
@@ -96,7 +96,7 @@ SlackBot.command('/imagegenraw', async ({ command, ack, client, context }) => {
     const steps = 50;
     const gpt = false;
 
-    const { stream, fileName, promptUsed } = await generateImage(
+    const { stream, fileName } = await generateImage(
       userPrompt,
       seed,
       scale,
@@ -109,7 +109,7 @@ SlackBot.command('/imagegenraw', async ({ command, ack, client, context }) => {
     await client.files.uploadV2({
       token: context.botToken,
       channel_id: command.channel_id,
-      initial_comment: `Hey <@${command.user_id}>! Here's your image :yeet:. Prompt used: "${promptUsed}"`,
+      initial_comment: `Hey <@${command.user_id}>! Here's your image basd on '${userPrompt}' :yeet:.`,
       file: fileBuffer,
       filename: fileName,
     });
@@ -139,7 +139,7 @@ SlackBot.command(
       const steps = 50;
       const gpt = false;
 
-      const { stream, fileName, promptUsed } = await generateImage(
+      const { stream, fileName } = await generateImage(
         userPrompt,
         seed,
         scale,
@@ -152,7 +152,7 @@ SlackBot.command(
       await client.files.uploadV2({
         token: context.botToken,
         channel_id: command.channel_id,
-        initial_comment: `Hey <@${command.user_id}>! Here's openjoruney image :tada:. Prompt used: "${promptUsed}"`,
+        initial_comment: `Hey <@${command.user_id}>! Here's openjoruney image basd on '${userPrompt}'  :tada:.`,
         file: fileBuffer,
         filename: fileName,
       });
@@ -181,7 +181,7 @@ SlackBot.command('/openjourney', async ({ command, ack, client, context }) => {
     const steps = 50;
     const gpt = true;
 
-    const { stream, fileName, promptUsed } = await generateImage(
+    const { stream, fileName } = await generateImage(
       userPrompt,
       seed,
       scale,
@@ -194,7 +194,7 @@ SlackBot.command('/openjourney', async ({ command, ack, client, context }) => {
     await client.files.uploadV2({
       token: context.botToken,
       channel_id: command.channel_id,
-      initial_comment: `Hey <@${command.user_id}>! Here's your openjoruney image :tada:. Prompt used: "${promptUsed}" (original prompt: "${userPrompt}")`,
+      initial_comment: `Hey <@${command.user_id}>! Here's your openjoruney image basd on '${userPrompt}'  :tada:.`,
       file: fileBuffer,
       filename: fileName,
     });
