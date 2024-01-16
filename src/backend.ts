@@ -1,6 +1,6 @@
 import axios from 'axios';
 import FormData from 'form-data';
-import { bufferToStream } from './utilities';
+import { MAX_TIMEOUT, bufferToStream } from './utilities';
 
 const axiosInstance = axios.create({
   baseURL: process.env.BACKEND_URL,
@@ -17,6 +17,7 @@ export async function callPromptToStoryboard(userPrompt: string) {
     const response = await axiosInstance.post('/promptToStoryboard', form, {
       headers: form.getHeaders(),
       responseType: 'stream', // To receive the response as a stream
+      timeout: MAX_TIMEOUT,
     });
 
     const contentDisposition = response.headers['content-disposition'];
@@ -78,6 +79,7 @@ export async function callPromptToImage(data: ImageGenerationData) {
         'Content-Type': 'application/json',
       },
       responseType: 'arraybuffer',
+      timeout: MAX_TIMEOUT,
     });
 
     const buffer = Buffer.from(response.data);

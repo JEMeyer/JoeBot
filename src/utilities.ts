@@ -97,3 +97,5 @@ export function saveFile(
     });
   });
 }
+
+export const MAX_TIMEOUT = 300 * 1000; // 300 seconds in milliseconds
