@@ -40,7 +40,7 @@ SlackBot.command('/storyboard', async ({ command, ack, client, context }) => {
 });
 
 // Listen for slash commands and handle them
-SlackBot.command('/imageGen', async ({ command, ack, client, context }) => {
+SlackBot.command('/imagegen', async ({ command, ack, client, context }) => {
   // Acknowledge the command
   await ack(`Generating image with base prompt: ${command.text}`);
 
@@ -82,7 +82,7 @@ SlackBot.command('/imageGen', async ({ command, ack, client, context }) => {
 });
 
 // Listen for slash commands and handle them
-SlackBot.command('/imageGenRaw', async ({ command, ack, client, context }) => {
+SlackBot.command('/imagegenraw', async ({ command, ack, client, context }) => {
   // Acknowledge the command
   await ack(`Generating image with base prompt: ${command.text}`);
 
@@ -124,7 +124,7 @@ SlackBot.command('/imageGenRaw', async ({ command, ack, client, context }) => {
 });
 
 SlackBot.command(
-  '/imageGenSecondaryRaw',
+  '/imagegenrawsecondary',
   async ({ command, ack, client, context }) => {
     // Acknowledge the command
     await ack(`Generating image with base prompt: ${command.text}`);
@@ -168,7 +168,7 @@ SlackBot.command(
 );
 
 SlackBot.command(
-  '/imageGenSecondary',
+  '/imagegensecondary',
   async ({ command, ack, client, context }) => {
     // Acknowledge the command
     await ack(`Generating image with base prompt: ${command.text}`);
