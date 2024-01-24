@@ -6,7 +6,7 @@ export async function sendTypingWhileAPICall(
   apiCallPromise: Promise<any>,
   callback: () => void
 ) {
-  let typingInterval: string | number | NodeJS.Timer | undefined;
+  let typingInterval: NodeJS.Timeout | undefined;
 
   // Start typing
   const startTyping = () => {

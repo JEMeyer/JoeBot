@@ -117,7 +117,7 @@ DiscordClient.on('messageCreate', function (message) {
         let scale = 7.5;
         let steps = 50;
         let gpt = true;
-        let openJourney = false;
+        let secondaryServer = false;
 
         // Parse the flags and their values
         for (let i = 0; i < args.length; i++) {
@@ -134,8 +134,8 @@ DiscordClient.on('messageCreate', function (message) {
             case '--raw':
               gpt = false;
               break;
-            case '--openjourney':
-              openJourney = true;
+            case '--useSecondary':
+              secondaryServer = true;
               break;
             case '-help':
               message.reply(
@@ -158,7 +158,7 @@ DiscordClient.on('messageCreate', function (message) {
           scale,
           steps,
           gpt,
-          openJourney
+          secondaryServer
         );
         const { stream, fileName } = await sendTypingWhileAPICall(
           apiCallPromise,

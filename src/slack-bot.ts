@@ -40,7 +40,7 @@ SlackBot.command('/storyboard', async ({ command, ack, client, context }) => {
 });
 
 // Listen for slash commands and handle them
-SlackBot.command('/imagegen', async ({ command, ack, client, context }) => {
+SlackBot.command('/imageGen', async ({ command, ack, client, context }) => {
   // Acknowledge the command
   await ack(`Generating image with base prompt: ${command.text}`);
 
@@ -82,7 +82,7 @@ SlackBot.command('/imagegen', async ({ command, ack, client, context }) => {
 });
 
 // Listen for slash commands and handle them
-SlackBot.command('/imagegenraw', async ({ command, ack, client, context }) => {
+SlackBot.command('/imageGenRaw', async ({ command, ack, client, context }) => {
   // Acknowledge the command
   await ack(`Generating image with base prompt: ${command.text}`);
 
@@ -124,7 +124,7 @@ SlackBot.command('/imagegenraw', async ({ command, ack, client, context }) => {
 });
 
 SlackBot.command(
-  '/openjourneyraw',
+  '/imageGenSecondaryRaw',
   async ({ command, ack, client, context }) => {
     // Acknowledge the command
     await ack(`Generating image with base prompt: ${command.text}`);
@@ -167,46 +167,49 @@ SlackBot.command(
   }
 );
 
-SlackBot.command('/openjourney', async ({ command, ack, client, context }) => {
-  // Acknowledge the command
-  await ack(`Generating image with base prompt: ${command.text}`);
+SlackBot.command(
+  '/imageGenSecondary',
+  async ({ command, ack, client, context }) => {
+    // Acknowledge the command
+    await ack(`Generating image with base prompt: ${command.text}`);
 
-  // Process the command and send a response
-  try {
-    // Your custom logic for the slash command
-    const userPrompt = command.text.trim();
+    // Process the command and send a response
+    try {
+      // Your custom logic for the slash command
+      const userPrompt = command.text.trim();
 
-    const seed = Math.floor(Math.random() * 4294967295);
-    const scale = 7.5;
-    const steps = 50;
-    const gpt = true;
+      const seed = Math.floor(Math.random() * 4294967295);
+      const scale = 7.5;
+      const steps = 50;
+      const gpt = true;
 
-    const { stream, fileName } = await generateImage(
-      userPrompt,
-      seed,
-      scale,
-      steps,
-      gpt,
-      true
-    );
-    const fileBuffer = await streamToBuffer(stream);
+      const { stream, fileName } = await generateImage(
+        userPrompt,
+        seed,
+        scale,
+        steps,
+        gpt,
+        true
+      );
+      const fileBuffer = await streamToBuffer(stream);
 
-    await client.files.uploadV2({
-      token: context.botToken,
-      channel_id: command.channel_id,
-      initial_comment: `Hey <@${command.user_id}>! Here's your openjoruney image basd on '${userPrompt}'  :tada:.`,
-      file: fileBuffer,
-      filename: fileName,
-    });
-  } catch (error) {
-    console.error(error);
-    await client.chat.postMessage({
-      token: context.botToken,
-      channel: command.channel_id,
-      text: 'An error occurred while processing your command.',
-    });
+      await client.files.uploadV2({
+        token: context.botToken,
+        channel_id: command.channel_id,
+        initial_comment: `Hey <@${command.user_id}>! Here's your openjoruney image basd on '${userPrompt}'  :tada:.`,
+        file: fileBuffer,
+        filename: fileName,
+      });
+    } catch (error) {
+      console.error(error);
+      await client.chat.postMessage({
+        token: context.botToken,
+        channel: command.channel_id,
+        text: 'An error occurred while processing your command.',
+      });
+    }
   }
-});
+);
 
 const targetChannelId = process.env.SLACK_IMAGE_BACKUP_CHANNEL_ID;
 

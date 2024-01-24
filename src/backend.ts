@@ -70,6 +70,7 @@ type ImageGenerationData = {
   scale: number;
   steps: number;
   seed: number;
+  secondaryServer: boolean;
 };
 
 export async function callPromptToImage(data: ImageGenerationData) {
@@ -107,8 +108,7 @@ export async function generateImage(
   scale: number,
   steps: number,
   gpt: boolean,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  openjoruney: boolean
+  secondaryServer: boolean
 ) {
   let upscaledPrompt;
   if (gpt) {
@@ -120,6 +120,7 @@ export async function generateImage(
     scale,
     steps,
     seed,
+    secondaryServer,
   };
 
   const { stream, fileName } = await callPromptToImage(data);
