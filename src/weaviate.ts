@@ -1,4 +1,5 @@
 import weaviate, { WeaviateClient } from 'weaviate-ts-client';
+import { summarizeText } from './backend';
 
 const weaviateClient: WeaviateClient = weaviate.client({
   host: process.env.WEAVIATE_HOST ?? '',
@@ -14,7 +15,7 @@ interface DtChat {
 
 export async function retrieveRelevantMessages(
   message: string,
-  limit: number = 50
+  limit: number,
 ): Promise<DtChat[]> {
   // Query the Weaviate vector database to retrieve relevant messages
   const result = await weaviateClient.graphql
@@ -25,5 +26,30 @@ export async function retrieveRelevantMessages(
     .withNearText({ concepts: [message] })
     .do();
 
-  return result.data.Get.DtChat;
+    return result.data.Get.DtChat;
+}
+
+export async function retrieveAndSummarizeRelevantMessages(
+  message: string,
+  usersStore: Record<string, string | undefined>,
+  limit: number = 1000,
+  messagesPerDocument: number = 200
+): Promise<string[]> {
+    const relevantMessages = await retrieveRelevantMessages(message, limit);
+
+    const chatMessages = relevantMessages.map((chat: DtChat) => `${usersStore[chat.user]} said "${chat.text.replace(/<@(U[A-Z0-9]+)>/g, (match, userId) => {
+         return usersStore[userId] || match;
+       })}" in channel ${chat.channel}`);
+
+    const summaries: string[] = [];
+    const promises: Promise<number>[] = [];
+    for (let i = 0; i < chatMessages.length; i += messagesPerDocument) {
+      const documentText = chatMessages.slice(i, i + messagesPerDocument).join('\n');
+      //summaries.push(await summarizeText(documentText));
+      promises.push(summarizeText(documentText).then((val) => summaries.push(val)));
+    }
+
+    await Promise.all(promises);
+
+    return summaries;
 }

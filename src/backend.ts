@@ -170,3 +170,15 @@ export async function callGenerate(params: GenerateRequest) {
     throw new Error(JSON.stringify(err));
   }
 }
+
+export async function summarizeText(text: string) {
+  return await callGenerate({
+    prompt: `Please provide a summary of the following text, capturing the main points and key details:\n\n${text}\n\nSummary:`,
+    model: 'dolphin-mixtral:8x7b-v2.7-q6_K',
+    options: {
+      temperature: 0.5,
+      top_p: 0.9,
+      stop: ['\n\nSummary:'],
+    }
+  });
+}
