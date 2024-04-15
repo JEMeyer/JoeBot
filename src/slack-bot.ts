@@ -1,15 +1,39 @@
 import { App } from '@slack/bolt';
-import { callChat, callPromptToStoryboard, generateImage } from './backend';
+import { callChat, callGenerate, callPromptToStoryboard, generateImage } from './backend';
 import { generateFilename, saveFile, streamToBuffer } from './utilities';
 import axios from 'axios';
 import { retrieveRelevantMessages } from './weaviate';
-import { Message } from './ollama-types';
 
 export const SlackBot = new App({
   token: process.env.SLACK_BOT_TOKEN,
   appToken: process.env.SLACK_APP_TOKEN,
   socketMode: true,
 });
+
+// Object to store user ID to name mapping
+const usersStore: Record<string, string | undefined> = {};
+
+// Function to load user ID to name mapping
+export async function loadUserMapping() {
+  try {
+    // Call the users.list method to retrieve all users
+    const result = await SlackBot.client.users.list();
+
+    // Extract the members from the response
+    const members = result.members ?? [];
+
+    // Loop through each member and add their ID and name to the mapping
+    for (const member of members) {
+      if (!member.is_bot && member.profile && member.id) {
+        usersStore[member.id] = member.profile.real_name;
+      }
+    }
+
+    console.log('User ID to name mapping loaded:', usersStore);
+  } catch (error) {
+    console.error('Error loading user ID to name mapping:', error);
+  }
+}
 
 // Listen for slash commands and handle them
 SlackBot.command('/storyboard', async ({ command, ack, client, context }) => {
@@ -276,63 +300,78 @@ SlackBot.event('file_shared', async ({ event, client }) => {
   }
 });
 
-SlackBot.message(async ({ message, say }) => {
+const understand_context = "You are a helpful chatbot. You will be provided with a series of messages containing relevant information to help answer the user's question. Carefully review all the provided context before formulating a response.";
+// const user_mapping = `Wnen you see an id that looks like U followed by 8 or 10 letters or numbers, that is an ID of a user. When responding, never use their IDs, instead convert it to their name using this map: ${usersStore}.`;
+const bot_instruction = "Given all of the context and the actual query from the user, respond to the user in a concise way. Avoid being vague since it sounds like you're not confident - the length of your response can vary but don't ramble. If the user asks a complicated question you can give a more detailed answer. Only return text that would be spoken by you. Never include a U based ID in your response. Only return the message you'd send in a chat.";
+const bot_personality = "Respond with the personality of someone who is eager to help and is witty and smart. You keep wondering about WWIII and Israel and Palestine though so sometime you go off track ranting about genocide.";
+
+// Listen for messages that mention the bot
+SlackBot.event('app_mention', async ({ event, logger, client, say }) => {
   try {
-    const authTest = await SlackBot.client.auth.test();
-    const botUserId = authTest.user_id;
-    if ('text' in message && message.text != null) {
-      const isBotMentioned = message.text.includes(`<@${botUserId}>`);
+    let dots = 2;
+    let increasing = true;
+    const typingMessage = await say(":hourglass:");
 
-      if (isBotMentioned) {
-        // Retrieve the last 10 messages from the channel
-        const history = await SlackBot.client.conversations.history({
-          channel: message.channel,
-          limit: 10,
-        });
+    const intervalId = setInterval(async () => {
+      const hourglass = ":hourglass: ".repeat(dots);
+      await client.chat.update({
+        channel: event.channel,
+        ts: typingMessage.ts ?? '',
+        text: hourglass
+      });
 
-        const lastMessages = history.messages ?? [];
-
-        // Retrieve relevant messages from the Weaviate vector database
-        const relevantMessages = await retrieveRelevantMessages(
-          message.text,
-          100
-        );
-
-        // Prompt model and combine the history messages and relevant messages
-        const allMessages = [
-          {
-            role: 'system',
-            content:
-              'You are a helpful and funny assistant that responds to users in the style of scooby-doo.',
-          },
-          ...relevantMessages.map((msg) => ({
-            role: 'assistant',
-            content: `channel:${msg.channel}|user:${msg.user}|msg:${msg.text}`,
-            metadata: { type: 'relevantDocuments' },
-          })),
-          ...lastMessages.map((msg) => ({
-            role: 'assistant',
-            content: `${msg.user}:${msg.text}`,
-            metadata: { type: 'historyMessages' },
-          })),
-          {
-            role: 'user',
-            content: message.text,
-          },
-        ];
-
-        // Call the backend service with the Ollama model
-        const response = await callChat({
-          messages: allMessages,
-          model: 'yarn-llama2:13b-64k',
-          options: { num_ctx: 65536 },
-        });
-
-        // Send the response as a reply
-        await say(response);
+      if (increasing) {
+        dots++;
+        if (dots === 5) {
+          increasing = false;
+          dots = 4;
+        }
+      } else {
+        dots--;
+        if (dots === 0) {
+          increasing = true;
+          dots = 1;
+        }
       }
-    }
-  } catch (error) {
-    console.error('Error processing message:', error);
+    }, 1000);
+
+    // Get the text of the message, removing the bot mention
+    const text = event.text.trim();
+
+    // Retrieve the last 10 messages from the channel
+    const history = await SlackBot.client.conversations.history({
+      channel: event.channel,
+      limit: 10,
+    });
+
+    const _lastMessages = history.messages ?? [];
+
+    // Retrieve relevant messages from the Weaviate vector database
+    const relevantMessages = await retrieveRelevantMessages(
+      text,
+      75
+    );
+
+    const system = `${understand_context}\n${bot_instruction}\n${bot_personality}\nRelevant Historical Context Messages:
+    ${relevantMessages.map((msg) => `${usersStore[msg.user]} said "${msg.text}" in channel ${msg.channel}`).join('\n')}`;
+
+    // Call the backend service with the Ollama model
+    const response = await callGenerate({
+      system,
+      prompt: text,
+      model: 'dolphin-mixtral:8x7b-v2.7-q6_K',
+    });
+
+    console.log(`User: ${text}\nBot: ${response}`);
+
+    clearInterval(intervalId);
+    await client.chat.update({
+      channel: event.channel,
+      ts: typingMessage.ts ?? '',
+      text: response
+    });
+  }
+  catch (error) {
+    logger.error(error);
   }
 });
