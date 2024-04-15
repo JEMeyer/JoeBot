@@ -1,6 +1,7 @@
 import axios from 'axios';
 import FormData from 'form-data';
 import { MAX_TIMEOUT, bufferToStream } from './utilities';
+import { ChatRequest, GenerateRequest } from './ollama-types';
 
 const axiosInstance = axios.create({
   baseURL: process.env.BACKEND_URL,
@@ -130,4 +131,42 @@ export async function generateImage(
     fileName,
     promptUsed: data,
   };
+}
+
+export async function callChat(params: ChatRequest) {
+  try {
+    const response = await axiosInstance.post('/chat', params, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return String(response.data);
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      throw new Error(
+        err.response?.statusText || 'Unknown error. Please try again.'
+      );
+    }
+    throw new Error(JSON.stringify(err));
+  }
+}
+
+export async function callGenerate(params: GenerateRequest) {
+  try {
+    const response = await axiosInstance.post('/generate', params, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return String(response.data);
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      throw new Error(
+        err.response?.statusText || 'Unknown error. Please try again.'
+      );
+    }
+    throw new Error(JSON.stringify(err));
+  }
 }

@@ -1,7 +1,9 @@
 import { App } from '@slack/bolt';
-import { callPromptToStoryboard, generateImage } from './backend';
+import { callChat, callPromptToStoryboard, generateImage } from './backend';
 import { generateFilename, saveFile, streamToBuffer } from './utilities';
 import axios from 'axios';
+import { retrieveRelevantMessages } from './weaviate';
+import { Message } from './ollama-types';
 
 export const SlackBot = new App({
   token: process.env.SLACK_BOT_TOKEN,
@@ -271,5 +273,66 @@ SlackBot.event('file_shared', async ({ event, client }) => {
     }
   } catch (error) {
     console.error('Error processing file_shared event:', error);
+  }
+});
+
+SlackBot.message(async ({ message, say }) => {
+  try {
+    const authTest = await SlackBot.client.auth.test();
+    const botUserId = authTest.user_id;
+    if ('text' in message && message.text != null) {
+      const isBotMentioned = message.text.includes(`<@${botUserId}>`);
+
+      if (isBotMentioned) {
+        // Retrieve the last 10 messages from the channel
+        const history = await SlackBot.client.conversations.history({
+          channel: message.channel,
+          limit: 10,
+        });
+
+        const lastMessages = history.messages ?? [];
+
+        // Retrieve relevant messages from the Weaviate vector database
+        const relevantMessages = await retrieveRelevantMessages(
+          message.text,
+          100
+        );
+
+        // Prompt model and combine the history messages and relevant messages
+        const allMessages = [
+          {
+            role: 'system',
+            content:
+              'You are a helpful and funny assistant that responds to users in the style of scooby-doo.',
+          },
+          ...relevantMessages.map((msg) => ({
+            role: 'assistant',
+            content: `channel:${msg.channel}|user:${msg.user}|msg:${msg.text}`,
+            metadata: { type: 'relevantDocuments' },
+          })),
+          ...lastMessages.map((msg) => ({
+            role: 'assistant',
+            content: `${msg.user}:${msg.text}`,
+            metadata: { type: 'historyMessages' },
+          })),
+          {
+            role: 'user',
+            content: message.text,
+          },
+        ];
+
+        // Call the backend service with the Ollama model
+        const response = await callChat({
+          messages: allMessages,
+          model: 'yarn-llama2:13b-64k',
+          options: { num_ctx: 65536 },
+        });
+
+        // Send the response as a reply
+        await say(response);
+      }
+    }
+  } catch (error) {
+    console.error('Error processing message:', error);
   }
 });
