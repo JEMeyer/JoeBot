@@ -10,6 +10,8 @@ export const SlackBot = new App({
   socketMode: true,
 });
 
+let myBotId = 'default_value';
+
 // Object to store user ID to name mapping
 const usersStore: Record<string, string | undefined> = {};
 
@@ -30,6 +32,15 @@ export async function loadUserMapping() {
     }
 
     console.log('User ID to name mapping loaded:', usersStore);
+
+    SlackBot.client.auth.test()
+      .then((result) => {
+        myBotId = result.bot_id ?? 'default_value';
+        console.log(`Bot ID: ${myBotId}`);
+      })
+      .catch((error) => {
+        console.error('Failed to retrieve bot ID:', error);
+      });
   } catch (error) {
     console.error('Error loading user ID to name mapping:', error);
   }
@@ -345,12 +356,12 @@ SlackBot.event('app_mention', async ({ event, logger, client, say }) => {
     });
 
     // Filter out bot messages and keep only human messages
-    const humanMessages = history.messages?.filter((message) => {
-      return !message.bot_id && message.subtype !== 'bot_message';
+    const filteredMessages = history.messages?.filter((message) => {
+      return message.bot_id != myBotId;
     }) ?? [];
 
-    // Limit to the last 10 human messages
-    const lastHumanMessages = humanMessages.slice(-10);
+    // Limit to the last 15 messages
+    const lastHumanMessages = filteredMessages.slice(-15);
 
     // Retrieve relevant messages from the Weaviate vector database
     const relevantMessages = await retrieveRelevantMessages(
