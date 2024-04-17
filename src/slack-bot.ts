@@ -356,12 +356,12 @@ SlackBot.event('app_mention', async ({ event, logger, client, say }) => {
       model: 'dolphin-mixtral:8x7b-v2.7-q6_K',
       prompt: text,
       format: 'json',
-      system: `You are a decision maker for fetching context for an LLM call. Given a user prompt, decide if the prompt will require real-time lookup data that would require an internet query. Another option is if the query appears to be asking about the history of what people have said, in that case the history of a chatroom will be provided. Only consider ONLINE if it's obvious the user needs real-time data since anything past a few months ago will be in the training data for the next llm call. Penalize false-positives for ONLINE more so we only call it when needed and we dont' waste a call when we didn't need real-time data. If an online call is made but not needed, a kitten is killed. The return type to generate is JSON described by the following JSONSchema: {
+      system: `You are a decision maker for fetching context for an LLM call. Given a user prompt, decide if the prompt will require real-time lookup data that would require an internet query. Otherwise the history of the chat will be provided. Only consider ONLINE if it's obvious the user needs real-time data since anything past a few months ago will be in the training data for the next llm call. Penalize false-positives for ONLINE more so we only call it when needed and we dont' waste a call when we didn't need real-time data. If an online call is made but not needed, a kitten is killed. Most of the time it should be CHAT_HISTORY or DEFAULT - the online value is only if there is no way for you to possibly have any answer without real-time data. The return type to generate is JSON described by the following JSONSchema: {
         type: 'object',
         properties: {
           decision: {
             "enum": ["ONLINE", "CHAT_HISTORY", "DEFAULT"]
-            description: 'Returns ONLINE if the given prompt requires an internet request to get needed context to answer the users query. Returns CHAT_HISTORY if the given prompt requires the history of the current chatroom to answer the query. Returns DEFAUlT if you're not sure. ',
+            description: 'Returns CHAT_HISTORY if the given prompt requires the history of the current chatroom to answer the query. Returns ONLINE if the given prompt requires an internet request to get needed context to answer the users query - the call must REQUIRE internet in order to answer. Returns DEFAUlT if you're not sure. ',
           }
         }
         required: ['decision']
@@ -381,7 +381,7 @@ SlackBot.event('app_mention', async ({ event, logger, client, say }) => {
       case 'CHAT_HISTORY':
       default:
         // Get documents, each document should be roughly 100 tokens for DtChat2, length of msg for DtChat
-        context = await retrieveRelevantMessageContext(text, 125);
+        context = await retrieveRelevantMessageContext(text, 30, 2);
         context_explaination = understand_history_context
     }
 
