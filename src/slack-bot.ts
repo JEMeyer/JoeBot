@@ -358,7 +358,7 @@ SlackBot.event('app_mention', async ({ event, logger, client, say }) => {
       case 'CHAT_HISTORY':
       default:
         // Get documents, each document should be roughly 100 tokens for DtChat2, length of msg for DtChat
-        context = await retrieveRelevantMessageContext(text, 25, 2);
+        context = await retrieveRelevantMessageContext(text, 35, 2);
         context_explaination = understand_history_context
     }
 
