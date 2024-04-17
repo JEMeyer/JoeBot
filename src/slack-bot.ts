@@ -323,37 +323,14 @@ SlackBot.event('app_mention', async ({ event, logger, client, say }) => {
   try {
     let dots = 2;
     let increasing = true;
-    const typingMessage = await say(":hourglass:");
-
-    const intervalId = setInterval(async () => {
-      const hourglass = ":hourglass: ".repeat(dots);
-      await client.chat.update({
-        channel: event.channel,
-        ts: typingMessage.ts ?? '',
-        text: hourglass
-      });
-
-      if (increasing) {
-        dots++;
-        if (dots === 5) {
-          increasing = false;
-          dots = 3;
-        }
-      } else {
-        dots--;
-        if (dots === 0) {
-          increasing = true;
-          dots = 2;
-        }
-      }
-    }, 1000);
+    const typingMessage = await say(":thinkspin:");
 
     // Get the text of the message, replacing names
     const text = event.text.trim().replace(/<@(U[A-Z0-9]+)>/g, (match, userId) => usersStore[userId] || match);
 
     // Decide if we need exra info
     const requestData: GenerateRequest = {
-      model: 'command-r-plus:104b-q2_K',
+      model: 'dolphin-mixtral:8x7b-v2.7-q6_K',
       prompt: text,
       format: 'json',
       system: `You are a decision maker for fetching context for an LLM call. Given a user prompt, decide if the prompt will require real-time lookup data that would require an internet query. Otherwise the history of the chat will be provided. Only consider ONLINE if it's obvious the user needs real-time data since anything past a few months ago will be in the training data for the next llm call. Penalize false-positives for ONLINE more so we only call it when needed and we dont' waste a call when we didn't need real-time data. If an online call is made but not needed, a kitten is killed. Most of the time it should be CHAT_HISTORY or DEFAULT - the online value is only if there is no way for you to possibly have any answer without real-time data. The return type to generate is JSON described by the following JSONSchema: {
@@ -381,7 +358,7 @@ SlackBot.event('app_mention', async ({ event, logger, client, say }) => {
       case 'CHAT_HISTORY':
       default:
         // Get documents, each document should be roughly 100 tokens for DtChat2, length of msg for DtChat
-        context = await retrieveRelevantMessageContext(text, 600);
+        context = await retrieveRelevantMessageContext(text, 25, 2);
         context_explaination = understand_history_context
     }
 
@@ -405,15 +382,14 @@ SlackBot.event('app_mention', async ({ event, logger, client, say }) => {
     const response = await callGenerate({
       system,
       prompt: text,
-      model: 'command-r-plus:104b-q2_K',
+      model: 'dolphin-mixtral:8x7b-v2.7-q6_K', //'command-r-plus:104b-q2_K',
       options: {
-        num_ctx: 32000
+        num_ctx: 4096
       }
     });
 
     console.log(`User: ${text}\nBot: ${response}`);
 
-    clearInterval(intervalId);
     await client.chat.update({
       channel: event.channel,
       ts: typingMessage.ts ?? '',
