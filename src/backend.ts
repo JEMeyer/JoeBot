@@ -171,14 +171,25 @@ export async function callGenerate(params: GenerateRequest) {
   }
 }
 
-export async function summarizeText(text: string) {
-  return await callGenerate({
-    prompt: `Please provide a summary of the following text, capturing the main points and key details:\n\n${text}\n\nSummary:`,
-    model: 'dolphin-mixtral:8x7b-v2.7-q6_K',
-    options: {
-      temperature: 0.5,
-      top_p: 0.9,
-      stop: ['\n\nSummary:'],
+export async function onlineCompletion(query: string) {
+  const payload = {
+    prompt: query,
+  };
+
+  try {
+    const response = await axiosInstance.post('/perplexity', payload, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return String(response.data);
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      throw new Error(
+        err.response?.statusText || 'Unknown error. Please try again.'
+      );
     }
-  });
+    throw new Error('Unknown error. Please try again.');
+  }
 }
