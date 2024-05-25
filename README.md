@@ -1,21 +1,26 @@
-## JoeBot: A Multi-Platform Bot for Discord and Slack
+# JoeBot: A Multi-Platform Bot for Discord and Slack
 
 JoeBot is a versatile bot designed to operate on both Discord and Slack platforms. It interfaces with a backend to provide functionalities such as generating storyboards and images based on user prompts. This README will guide you through the setup, usage, and contribution process for JoeBot.
 
-### Table of Contents
+## Table of Contents
 
 - [JoeBot: A Multi-Platform Bot for Discord and Slack](#joebot-a-multi-platform-bot-for-discord-and-slack)
   - [Table of Contents](#table-of-contents)
-- [Project Overview](#project-overview)
-- [Features](#features)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-  - [Commands](#commands)
-    - [Discord Commands](#discord-commands)
-    - [Slack Commands](#slack-commands)
-- [Contributing](#contributing)
-- [License](#license)
+  - [Project Overview](#project-overview)
+  - [Features](#features)
+  - [Prerequisites](#prerequisites)
+  - [Docker Run](#docker-run)
+    - [Set Up Environment Variables](#set-up-environment-variables)
+    - [Run the image](#run-the-image)
+    - [Docker Compose](#docker-compose)
+  - [Usage](#usage)
+    - [Commands](#commands)
+      - [Discord Commands](#discord-commands)
+      - [Slack Commands](#slack-commands)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Project Overview
 
@@ -28,46 +33,57 @@ JoeBot is a multi-platform bot that can generate storyboards and images using AI
 - **Customizable Commands**: Users can interact with the bot using a variety of commands.
 - **Error Handling**: Robust error handling to ensure smooth operation.
 
-## Installation
+## Prerequisites
 
-To get started with JoeBot, follow these steps:
+- Docker
 
-1. **Clone the Repository**:
+## Docker Run
 
-   ```bash
-   git clone https://github.com/yourusername/JoeBot.git
-   cd JoeBot
-   ```
+Running via docker will be the simplest to get up and running quickly.
 
-2. **Install Dependencies**:
+### Set Up Environment Variables
 
-   ```bash
-   npm install
-   ```
+Create a `.env` file in the root directory and add the following variables (look at the .env.tempalte to verify up to date .env variables):
 
-3. **Set Up Environment Variables**:
-   Create a `.env` file in the root directory and add the following variables:
+```plaintext
+DISCORD_BOT_TOKEN=your_discord_bot_token
+SLACK_BOT_TOKEN=your_slack_bot_token
+SLACK_APP_TOKEN=your_slack_app_token
+BACKEND_URL=your_backend_url
+API_TOKEN=your_api_token
+SLACK_IMAGE_BACKUP_CHANNEL_ID=your_slack_image_backup_channel_id
+NAS_PATH=your_nas_path
+FAM_PHOTOS_FOLDER_PATH=your_family_photos_folder_path
+WEAVIATE_HOST=ip_address_of_weaviate_for_slack_RAG
+WEAVIATE_SCHEME=schema_for_RAG
+```
 
-   ```plaintext
-   DISCORD_BOT_TOKEN=your_discord_bot_token
-   SLACK_BOT_TOKEN=your_slack_bot_token
-   SLACK_APP_TOKEN=your_slack_app_token
-   BACKEND_URL=your_backend_url
-   API_TOKEN=your_api_token
-   SLACK_IMAGE_BACKUP_CHANNEL_ID=your_slack_image_backup_channel_id
-   NAS_PATH=your_nas_path
-   FAM_PHOTOS_FOLDER_PATH=your_family_photos_folder_path
-   ```
+### Run the image
 
-4. **Run the Bot**:
+To use the most recent image, pull the `latest` tag:
 
-   ```bash
-   npm start
-   ```
+```bash
+docker run --env-file ./.env  -p ghcr.io/jemeyer/joebot:latest
+```
 
-## Configuration
+This will start the services for both the Slack and Discord bots.
 
-JoeBot requires several environment variables to be set for proper operation. These include tokens for Discord and Slack, as well as URLs and paths for backend services and file storage.
+### Docker Compose
+
+You can also use JoeBot with Docker Compose. Here's an example docker-compose.yml file:
+
+```yaml
+services:
+  joebot:
+    image: ghcr.io/jemeyer/joebot:latest
+    env_file: .env
+```
+
+Start the container with:
+
+```bash
+docker-compose up -d
+```
 
 ## Usage
 
@@ -93,6 +109,36 @@ Once the bot is running, it will listen for commands on both Discord and Slack. 
 - **/imagegenraw <prompt>**: Generates an image based on the provided prompt without GPT processing.
 - **/imagegensecondary <prompt>**: Generates an image using a secondary server with GPT processing.
 - **/imagegenrawsecondary <prompt>**: Generates an image using a secondary server without GPT processing.
+
+## Installation
+
+To get started with local JoeBot execution/modifications, follow these steps:
+
+1. **Clone the Repository**:
+
+   ```bash
+   git clone https://github.com/yourusername/JoeBot.git
+   cd JoeBot
+   ```
+
+2. **Install Dependencies**:
+
+   ```bash
+   npm install
+   ```
+
+3. **Set Up Environment Variables**:
+   Create a `.env` file in the root directory as defined above.
+
+4. **Run the Bot**:
+
+   ```bash
+   npm start
+   ```
+
+## Configuration
+
+JoeBot requires several environment variables to be set for proper operation. These include tokens for Discord and Slack, as well as URLs and paths for backend services and file storage.
 
 ## Contributing
 
